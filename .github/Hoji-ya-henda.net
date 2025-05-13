@@ -1,0 +1,29 @@
+// Trecho anterior omitido para foco
+
+const carregarProdutosPopulares = async (dias = 7) => { try { const hoje = new Date(); const limiteData = new Date(hoje); limiteData.setDate(hoje.getDate() - dias);
+
+const cliquesSnap = await getDocs(collection(db, "cliques")); const vendasSnap = await getDocs(collection(db, "vendas")); const cliquesPorProduto = {}; cliquesSnap.docs.forEach(doc => { const { produtoId, data } = doc.data(); if (!data || new Date(data.toDate()) >= limiteData) { cliquesPorProduto[produtoId] = (cliquesPorProduto[produtoId] || 0) + 1; } }); const vendasPorProduto = {}; vendasSnap.docs.forEach(doc => { const { produtoId, data } = doc.data(); if (!data || new Date(data.toDate()) >= limiteData) { vendasPorProduto[produtoId] = (vendasPorProduto[produtoId] || 0) + 1; } }); const produtosSnap = await getDocs(collection(db, "produtos")); const produtos = produtosSnap.docs.map(doc => ({ id: doc.id, ...doc.data(), cliques: cliquesPorProduto[doc.id] || 0, vendas: vendasPorProduto[doc.id] || 0, })); const ordenados = produtos.sort((a, b) => b.vendas - a.vendas || b.cliques - a.cliques); setProdutosPopulares(ordenados); 
+
+} catch (error) { console.error("Erro ao carregar produtos populares:", error); } };
+
+const [produtosPopulares, setProdutosPopulares] = useState([]); const [filtroDias, setFiltroDias] = useState(7);
+
+useEffect(() => { carregarProdutosPopulares(filtroDias); }, [filtroDias]);
+
+// Dentro do JSX:
+
+Produtos Populares setFiltroDias(parseInt(e.target.value))} > Últimos 7 dias Últimos 30 dias Últimos 90 dias Todos os tempos 
+
+{produtosPopulares.map((produto) => ( {produto.nome} 
+
+{produto.descricao}
+
+Kz {produto.preco}
+
+Vendas: {produto.vendas} | Visualizações: {produto.cliques}
+
+))} 
+
+// Resto do código continua
+
+
